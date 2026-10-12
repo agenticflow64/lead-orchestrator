@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead Orchestrator — реестр заявок</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --bg-panel: #16213c;
+  --bg-panel-2: #1b2a4a;
+  --border: #263757;
+  --text: #e6edf7;
+  --text-dim: #8fa3c0;
+  --accent-from: #22d3ee;
+  --accent-to: #8b5cf6;
+  --low: #34d399;
+  --medium: #fbbf24;
+  --high: #f87171;
+  --radius: 14px;
+  font-size: 15px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background:
+    radial-gradient(1100px 500px at 85% -10%, rgba(139, 92, 246, .14), transparent 60%),
+    radial-gradient(900px 420px at -10% 0%, rgba(34, 211, 238, .10), transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 28px clamp(16px, 4vw, 48px) 60px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; }
+
+/* ---------- header ---------- */
+header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.logo {
+  width: 44px; height: 44px; border-radius: 12px; flex: none;
+  background: linear-gradient(135deg, var(--accent-from), var(--accent-to));
+  display: grid; place-items: center; font-size: 21px; font-weight: 800; color: #06121f;
+  box-shadow: 0 6px 24px rgba(34, 211, 238, .25);
+}
+h1 { font-size: 1.35rem; letter-spacing: .2px; }
+.sub { color: var(--text-dim); font-size: .85rem; margin-top: 2px; }
+.mode-badge {
+  border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-dim);
+  padding: 7px 14px; border-radius: 999px; font-size: .8rem; display: inline-flex; align-items: center; gap: 8px;
+}
+.mode-badge b { color: var(--text); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--low); box-shadow: 0 0 8px var(--low); }
+
+/* ---------- stats ---------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 22px; }
+.stat {
+  background: linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px;
+}
+.stat .v { font-size: 1.5rem; font-weight: 700; background: linear-gradient(90deg, var(--accent-from), var(--accent-to)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat .l { color: var(--text-dim); font-size: .78rem; margin-top: 3px; }
+
+/* ---------- layout ---------- */
+.cols { display: grid; grid-template-columns: 360px 1fr; gap: 18px; align-items: start; }
+@media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
+.panel {
+  background: linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;
+}
+.panel h2 { font-size: 1rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.panel h2 .n { color: var(--text-dim); font-weight: 400; font-size: .8rem; }
+
+/* ---------- form ---------- */
+label { display: block; font-size: .8rem; color: var(--text-dim); margin: 12px 0 5px; }
+input, textarea, select {
+  width: 100%; background: #0d1830; border: 1px solid var(--border); color: var(--text);
+  border-radius: 10px; padding: 10px 12px; font: inherit; outline: none; transition: border-color .15s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent-from); }
+textarea { resize: vertical; min-height: 110px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+  border: none; border-radius: 10px; padding: 11px 18px; font: inherit; font-weight: 600;
+  background: linear-gradient(90deg, var(--accent-from), var(--accent-to)); color: #06121f;
+  transition: filter .15s, transform .05s; width: 100%; margin-top: 16px;
+}
+.btn:hover { filter: brightness(1.12); }
+.btn:active { transform: scale(.985); }
+.btn.ghost {
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim); width: auto;
+  padding: 8px 14px; font-weight: 500; margin-top: 0;
+}
+.btn.ghost:hover { color: var(--text); border-color: var(--accent-from); filter: none; }
+.hint { font-size: .75rem; color: var(--text-dim); margin-top: 10px; line-height: 1.5; }
+
+/* ---------- table ---------- */
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.toolbar select { width: auto; padding: 8px 10px; font-size: .85rem; }
+.toolbar .spacer { flex: 1; }
+table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+th {
+  text-align: left; color: var(--text-dim); font-weight: 500; font-size: .74rem; text-transform: uppercase;
+  letter-spacing: .06em; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+td { padding: 10px; border-bottom: 1px solid rgba(38, 55, 87, .55); vertical-align: top; }
+tr.lead-row:hover td { background: rgba(34, 211, 238, .045); }
+tr.spam-row td { opacity: .5; }
+.mono { font-variant-numeric: tabular-nums; color: var(--text-dim); white-space: nowrap; font-size: .8rem; }
+.src { font-size: .72rem; color: var(--text-dim); border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 600; white-space: nowrap; }
+.badge.type { background: rgba(34, 211, 238, .12); color: var(--accent-from); border: 1px solid rgba(34, 211, 238, .35); }
+.badge.type.complaint { background: rgba(248, 113, 113, .12); color: var(--high); border-color: rgba(248, 113, 113, .4); }
+.badge.type.partnership { background: rgba(139, 92, 246, .14); color: #b79bff; border-color: rgba(139, 92, 246, .4); }
+.badge.type.spam { background: rgba(143, 163, 192, .12); color: var(--text-dim); border-color: var(--border); }
+.badge.urgency { padding: 3px 10px; }
+.badge.urgency.low { background: rgba(52, 211, 153, .12); color: var(--low); border: 1px solid rgba(52, 211, 153, .35); }
+.badge.urgency.medium { background: rgba(251, 191, 36, .12); color: var(--medium); border: 1px solid rgba(251, 191, 36, .35); }
+.badge.urgency.high { background: rgba(248, 113, 113, .14); color: var(--high); border: 1px solid rgba(248, 113, 113, .45); }
+
+td select { width: auto; padding: 5px 8px; font-size: .78rem; border-radius: 8px; }
+select.status-new { color: var(--accent-from); }
+select.status-in_progress { color: var(--medium); }
+select.status-done { color: var(--low); }
+.person b { font-weight: 600; }
+.person span { color: var(--text-dim); font-size: .78rem; display: block; margin-top: 1px; }
+.sum { max-width: 340px; }
+.sum .t { color: var(--text-dim); font-size: .76rem; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 340px; }
+.prov { font-size: .68rem; color: var(--text-dim); opacity: .8; }
+.empty { color: var(--text-dim); text-align: center; padding: 34px 0 !important; }
+
+/* ---------- notifications ---------- */
+.notes { margin-top: 18px; }
+.note {
+  border: 1px solid var(--border); border-left: 3px solid var(--accent-from);
+  background: rgba(13, 24, 48, .6); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+  font-size: .82rem; white-space: pre-wrap; line-height: 1.45;
+}
+.note .meta { color: var(--text-dim); font-size: .72rem; margin-bottom: 3px; display: flex; gap: 10px; }
+.note.high { border-left-color: var(--high); }
+
+/* ---------- toast ---------- */
+#toast {
+  position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: linear-gradient(90deg, var(--accent-from), var(--accent-to)); color: #06121f;
+  font-weight: 600; padding: 12px 22px; border-radius: 12px; box-shadow: 0 10px 34px rgba(0,0,0,.45);
+  opacity: 0; transition: all .3s; z-index: 50; max-width: 90vw;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">LO</div>
+      <div>
+        <h1>Lead Orchestrator</h1>
+        <div class="sub">агент-оркестратор заявок: приём → LLM-классификация → реестр → уведомление</div>
+      </div>
+    </div>
+    <div class="mode-badge"><span class="dot"></span>сервис активен · уведомления: <b id="notify-mode">…</b></div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="cols">
+    <section class="panel">
+      <h2>Новая заявка <span class="n">канал: веб-форма</span></h2>
+      <form id="lead-form">
+        <label for="f-name">Имя</label>
+        <input id="f-name" name="name" placeholder="Как к вам обращаться" maxlength="200">
+        <label for="f-contact">Контакт</label>
+        <input id="f-contact" name="contact" placeholder="Телефон, email или @telegram" maxlength="200">
+        <label for="f-text">Текст заявки</label>
+        <textarea id="f-text" name="text" required placeholder="Опишите ваш вопрос: цена, техподдержка, сотрудничество…"></textarea>
+        <button class="btn" type="submit" id="submit-btn">Отправить заявку</button>
+        <div class="hint">
+          Заявка пройдёт через LLM-классификатор (тип, срочность, извлечение полей), попадёт в реестр
+          справа и запустит уведомление ответственному. Второй канал — Telegram webhook
+          <code>POST /webhook/telegram</code>.
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Реестр заявок <span class="n" id="rows-count"></span></h2>
+      <div class="toolbar">
+        <select id="fl-type">
+          <option value="">все типы</option>
+          <option value="price_question">вопрос о цене</option>
+          <option value="support">техподдержка</option>
+          <option value="complaint">жалоба</option>
+          <option value="partnership">сотрудничество</option>
+          <option value="spam">спам</option>
+          <option value="other">другое</option>
+        </select>
+        <select id="fl-urgency">
+          <option value="">любая срочность</option>
+          <option value="high">высокая</option>
+          <option value="medium">средняя</option>
+          <option value="low">низкая</option>
+        </select>
+        <select id="fl-status">
+          <option value="">все статусы</option>
+          <option value="new">новая</option>
+          <option value="in_progress">в работе</option>
+          <option value="done">завершена</option>
+        </select>
+        <select id="fl-order">
+          <option value="desc">сначала новые</option>
+          <option value="asc">сначала старые</option>
+        </select>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="btn-export">⤓ Экспорт CSV</button>
+        <button class="btn ghost" id="btn-refresh">⟳ Обновить</button>
+      </div>
+      <div style="overflow-x: auto">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Время</th><th>Канал</th><th>Тип</th><th>Срочность</th>
+              <th>Клиент</th><th>Суть</th><th>Статус</th>
+            </tr>
+          </thead>
+          <tbody id="leads-body"></tbody>
+        </table>
+      </div>
+
+      <div class="notes">
+        <h2 style="margin-top:6px">Последние уведомления <span class="n" id="notify-note"></span></h2>
+        <div id="notes-list"></div>
+      </div>
+    </section>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const TYPE_RU = {
+  price_question: "вопрос о цене", support: "техподдержка", complaint: "жалоба",
+  partnership: "сотрудничество", spam: "спам", other: "другое",
+};
+const STATUS_RU = { new: "новая", in_progress: "в работе", done: "завершена" };
+const $ = (s) => document.querySelector(s);
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+async function loadStats() {
+  const s = await (await fetch("/api/stats")).json();
+  const cards = [
+    ["Всего заявок", s.total],
+    ["Новые", s.by_status.new || 0],
+    ["В работе", s.by_status.in_progress || 0],
+    ["Завершено", s.by_status.done || 0],
+    ["Ср. обработка", s.avg_processing_ms ? (s.avg_processing_ms / 1000).toFixed(1) + " с" : "—"],
+  ];
+  $("#stats").innerHTML = cards.map(([l, v]) => `<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+}
+
+async function loadLeads() {
+  const p = new URLSearchParams();
+  if ($("#fl-type").value) p.set("type", $("#fl-type").value);
+  if ($("#fl-urgency").value) p.set("urgency", $("#fl-urgency").value);
+  if ($("#fl-status").value) p.set("status", $("#fl-status").value);
+  p.set("order", $("#fl-order").value);
+  const leads = await (await fetch("/api/leads?" + p)).json();
+  $("#rows-count").textContent = leads.length ? `показано: ${leads.length}` : "";
+  const tbody = $("#leads-body");
+  if (!leads.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty">Заявок пока нет — отправьте первую через форму слева</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = leads.map((l) => `
+    <tr class="lead-row ${l.type === "spam" ? "spam-row" : ""}">
+      <td class="mono">${l.id}</td>
+      <td class="mono">${fmtTime(l.created_at)}</td>
+      <td><span class="src">${l.source === "telegram" ? "tg" : "web"}</span></td>
+      <td><span class="badge type ${l.type}">${TYPE_RU[l.type] || l.type}</span></td>
+      <td><span class="badge urgency ${l.urgency}">${{low: "низкая", medium: "средняя", high: "высокая"}[l.urgency]}</span></td>
+      <td class="person"><b>${esc(l.name) || "—"}</b>${l.contact ? `<span>${esc(l.contact)}</span>` : ""}</td>
+      <td class="sum">${esc(l.summary)}<div class="t" title="${esc(l.text)}">${esc(l.text)}</div>
+          <span class="prov">${esc(shortProvider(l.llm_provider))}</span></td>
+      <td>
+        <select class="status-${l.status}" data-id="${l.id}" onchange="setStatus(${l.id}, this)">
+          ${Object.entries(STATUS_RU).map(([v, t]) => `<option value="${v}" ${v === l.status ? "selected" : ""}>${t}</option>`).join("")}
+        </select>
+      </td>
+    </tr>`).join("");
+}
+
+function shortProvider(p) {
+  if (!p) return "";
+  if (p === "rules") return "fallback: правила";
+  return p.split(":").map((x, i) => i === 1 ? x.split("/").pop() : x).join(":");
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function loadNotes() {
+  const notes = await (await fetch("/api/notifications?limit=15")).json();
+  $("#notify-note").textContent = notes.length ? `показано: ${notes.length}` : "";
+  $("#notes-list").innerHTML = notes.length
+    ? notes.map((n) => `
+        <div class="note ${n.text.includes("СРОЧНО") ? "high" : ""}">
+          <div class="meta"><span>${fmtTime(n.created_at)}</span><span>канал: ${n.channel === "telegram" ? "Telegram" : "локальный лог"}</span></div>
+          ${esc(n.text)}
+        </div>`).join("")
+    : `<div class="empty" style="padding:14px 0">Уведомлений пока нет</div>`;
+}
+
+window.setStatus = async (id, el) => {
+  const r = await fetch("/api/leads/" + id, {
+    method: "PATCH", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: el.value }),
+  });
+  if (r.ok) { el.className = "status-" + el.value; loadStats(); } else toast("Не удалось обновить статус");
+};
+
+$("#lead-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#submit-btn");
+  btn.disabled = true; btn.textContent = "Классифицируем…";
+  try {
+    const r = await fetch("/api/leads", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: $("#f-name").value, contact: $("#f-contact").value, text: $("#f-text").value,
+      }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || "error");
+    toast(`Заявка #${d.lead_id} принята: ${TYPE_RU[d.type] || d.type}, срочность ${{{low: "низкая", medium: "средняя", high: "высокая"}[d.urgency]}}`);
+    e.target.reset();
+    await Promise.all([loadLeads(), loadStats(), loadNotes()]);
+  } catch (err) {
+    toast("Ошибка отправки: " + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "Отправить заявку";
+  }
+});
+
+$("#btn-export").addEventListener("click", () => {
+  const p = new URLSearchParams();
+  if ($("#fl-type").value) p.set("type", $("#fl-type").value);
+  if ($("#fl-urgency").value) p.set("urgency", $("#fl-urgency").value);
+  if ($("#fl-status").value) p.set("status", $("#fl-status").value);
+  window.location = "/api/leads/export.csv?" + p;
+});
+$("#btn-refresh").addEventListener("click", () => reloadAll());
+["fl-type", "fl-urgency", "fl-status", "fl-order"].forEach((id) => $("#" + id).addEventListener("change", loadLeads));
+
+function reloadAll() { loadStats(); loadLeads(); loadNotes(); }
+
+(async () => {
+  reloadAll();
+  setInterval(reloadAll, 7000);
+  try {
+    const m = await (await fetch("/api/meta")).json();
+    $("#notify-mode").textContent = m.telegram_enabled ? "Telegram" : "локальный лог (демо)";
+  } catch (e) { /* header keeps default */ }
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,20 @@
 services:
+  # Основная демка: python-сервис (webhook + форма + классификатор + реестр).
+  # Достаточно `docker compose up` — внешние сервисы не нужны.
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/srv/app/data
+
+  # n8n — опция для варианта с визуальным workflow (profile, в демо не нужен):
+  #   docker compose --profile n8n up
   n8n:
     image: n8nio/n8n:latest
+    profiles: ["n8n"]
     restart: unless-stopped
     ports:
       - "5678:5678"
@@ -9,12 +23,3 @@ services:
       - TZ=Europe/Moscow
     volumes:
       - ./n8n-data:/home/node/.n8n
-
-  # Сервис классификации (вечер 2 плана, см. docs/plan.md).
-  # Раскомментировать после появления classifier/Dockerfile.
-  # classifier:
-  #   build: ./classifier
-  #   restart: unless-stopped
-  #   env_file: .env
-  #   ports:
-  #     - "8000:8000"

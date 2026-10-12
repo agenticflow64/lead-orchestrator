@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 .venv/
 n8n-data/
+data/
+.pytest_cache/
