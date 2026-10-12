@@ -242,6 +242,7 @@ const TYPE_RU = {
   partnership: "сотрудничество", spam: "спам", other: "другое",
 };
 const STATUS_RU = { new: "новая", in_progress: "в работе", done: "завершена" };
+const URGENCY_RU = { low: "низкая", medium: "средняя", high: "высокая" };
 const $ = (s) => document.querySelector(s);
 
 function toast(msg) {
@@ -287,7 +288,7 @@ async function loadLeads() {
       <td class="mono">${fmtTime(l.created_at)}</td>
       <td><span class="src">${l.source === "telegram" ? "tg" : "web"}</span></td>
       <td><span class="badge type ${l.type}">${TYPE_RU[l.type] || l.type}</span></td>
-      <td><span class="badge urgency ${l.urgency}">${{low: "низкая", medium: "средняя", high: "высокая"}[l.urgency]}</span></td>
+      <td><span class="badge urgency ${l.urgency}">${URGENCY_RU[l.urgency]}</span></td>
       <td class="person"><b>${esc(l.name) || "—"}</b>${l.contact ? `<span>${esc(l.contact)}</span>` : ""}</td>
       <td class="sum">${esc(l.summary)}<div class="t" title="${esc(l.text)}">${esc(l.text)}</div>
           <span class="prov">${esc(shortProvider(l.llm_provider))}</span></td>
@@ -342,7 +343,7 @@ $("#lead-form").addEventListener("submit", async (e) => {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || "error");
-    toast(`Заявка #${d.lead_id} принята: ${TYPE_RU[d.type] || d.type}, срочность ${{{low: "низкая", medium: "средняя", high: "высокая"}[d.urgency]}}`);
+    toast(`Заявка #${d.lead_id} принята: ${TYPE_RU[d.type] || d.type}, срочность ${URGENCY_RU[d.urgency]}`);
     e.target.reset();
     await Promise.all([loadLeads(), loadStats(), loadNotes()]);
   } catch (err) {
