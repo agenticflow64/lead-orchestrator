@@ -50,12 +50,15 @@ _NAME_STOPWORDS = {
     "здравствуйте", "добрый", "день", "что", "как", "уже", "ваш", "ваша", "прошу", "сайт", "ошибка",
     "нужно", "хотим", "мы", "я", "меня", "моя", "мой", "письмо", "аккаунт", "письма", "третью",
     "неделю", "жду", "ответа", "качество", "работы", "предлагаю", "партнерство", "партнёрство",
+    "жалоба", "срочно", "спасибо", "пишите", "пишу",
 }
 
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _PHONE_RE = re.compile(r"(?:\+7|8)[\s(-]?\d{3}[\s)-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}\b|\b\d{3}[\s-]\d{3}[\s-]\d{2}[\s-]\d{2}\b")
 _TG_RE = re.compile(r"@[A-Za-z0-9_]{4,}")
 _WORD_RE = re.compile(r"[А-ЯЁ][а-яё]{2,}")
+# something contact-like at the start of a string: phone, @username, email
+_CONTACT_START_RE = re.compile(r"^(?:\+?\d|@|[A-Za-z0-9][A-Za-z0-9._%+-]*@)")
 
 
 def _fallback_type(text: str) -> str:
@@ -66,6 +69,8 @@ def _fallback_type(text: str) -> str:
 
 
 def _fallback_urgency(text: str, type_: str) -> str:
+    if type_ == "spam":
+        return "low"  # spam never disturbs the on-call person
     if _HIGH_URGENCY.search(text):
         return "high"
     if type_ == "complaint":
@@ -84,20 +89,26 @@ def _fallback_contact(text: str) -> str:
 
 
 def _fallback_name(text: str) -> str:
-    m = re.search(r"(?:меня зовут|я)\s+([А-ЯЁ][а-яё]+)", text, re.I)
+    """Signature-position heuristic: a capitalized word right before end-of-text, a comma
+    or a contact token is treated as the client's name."""
+    m = re.search(r"меня зовут\s+([А-ЯЁ][а-яё]+)", text, re.I)
     if m:
         return m.group(1)
-    # A capitalized Cyrillic word that does not start a sentence and is not a stopword.
     for m in _WORD_RE.finditer(text):
         word = m.group(0)
         if word.lower() in _NAME_STOPWORDS:
             continue
-        start = m.start()
-        before = text[:start].rstrip()
-        if not before or before[-1] in ".!?":
-            continue  # sentence-initial: likely a regular word, not a signature name
-        if before.endswith(",") or before.endswith("-") or re.search(r"\b(?:тел|телефон|tg|почта)\.?$", before, re.I):
-            return word
+        rest = text[m.end() :].lstrip()
+        if rest == "" or _CONTACT_START_RE.match(rest):
+            return word  # "…бюджет. Дмитрий" / "Ольга +7 900 …"
+        if rest.startswith(","):
+            tail = rest[1:].lstrip()
+            if _CONTACT_START_RE.match(tail):
+                return word  # "Александр, a.petrov@company.ru"
+            follow = re.match(r"[А-ЯЁ][а-яё]+", tail)
+            if follow:
+                return follow.group(0)  # "Жалоба, Сергей"
+        # otherwise: word starts a normal sentence ("Сколько стоит…") — skip
     return ""
 
 

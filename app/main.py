@@ -4,6 +4,7 @@ import csv
 import io
 import logging
 import time
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -16,12 +17,15 @@ from .classifier import classify
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("leadorch.main")
 
-app = FastAPI(title="Lead Orchestrator", version="1.0.0")
 
-@app.on_event("startup")
-def _startup() -> None:
+@asynccontextmanager
+async def lifespan(_: FastAPI):
     db.init_db()
     log.info("storage ready; telegram notifications: %s", "real" if notifier.settings.telegram_enabled else "mock(log)")
+    yield
+
+
+app = FastAPI(title="Lead Orchestrator", version="1.0.0", lifespan=lifespan)
 
 
 # ---------------------------------------------------------------------------
