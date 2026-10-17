@@ -5,8 +5,9 @@ services:
     build: .
     restart: unless-stopped
     env_file: .env
-    ports:
-      - "8000:8000"
+    # host-режим: из bridge-сети Cloudflare блокирует OpenRouter (403),
+    # контейнер использует сетевой стек хоста (IPv6-туннель)
+    network_mode: host
     volumes:
       - ./data:/srv/app/data
 
