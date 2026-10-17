@@ -1,0 +1,21 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,DejaVu Sans,42,&H00FFFFFF,&H000000FF,&H00000000,&H8C000000,0,0,0,0,100,100,0,0,4,1,0,2,80,80,48,204
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.40,0:00:04.20,Default,,0,0,0,,Кейс: агент-оркестратор заявок — форма → LLM-классификация → реестр
+Dialogue: 0,0:00:04.80,0:00:09.50,Default,,0,0,0,,Первая заявка — жалоба: оплата прошла, заказ не оформлен
+Dialogue: 0,0:00:19.00,0:00:22.20,Default,,0,0,0,,Отправлено — текст разбирает LLM-классификатор
+Dialogue: 0,0:00:22.80,0:00:27.80,Default,,0,0,0,,Жалоба · высокая срочность · суть переформулирована для оператора
+Dialogue: 0,0:00:30.00,0:00:34.00,Default,,0,0,0,,Вторая заявка — вопрос о цене интеграции
+Dialogue: 0,0:00:42.60,0:00:46.80,Default,,0,0,0,,Вопрос о цене · низкая срочность · занесена в реестр
+Dialogue: 0,0:00:48.40,0:00:52.00,Default,,0,0,0,,Третья — типичный спам без имени и контактов
+Dialogue: 0,0:00:53.40,0:00:56.40,Default,,0,0,0,,Спам распознан · демо-стенд: agenticflow64.github.io
